@@ -1,16 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <windows.h>
 
 struct Book {
     int id;
     char title[50];
     char author[50];
-    int available;
     int reserved;
 };
-
 
 struct User {
     int id;
@@ -21,7 +19,51 @@ struct User {
     char role[10];
 };
 
+void welcome() {
+    char welcome[50] = "WELCOME";
+    char welcome2[50] = " TO";
+    char welcome3[50] = " DIU Library Management System";
+    printf("\n\n\n\t\t\t");
+    for (int wlc = 0; wlc < strlen(welcome); wlc++) {
+        printf(" %c", welcome[wlc]);
+        Sleep(100);
+    }
+    printf("\n\n\t\t\t\t ");
+    for (int wlc2 = 0; wlc2 < strlen(welcome2); wlc2++) {
+        printf(" %c", welcome2[wlc2]);
+        Sleep(100);
+    }
+    printf("\n\n\t\t\t\t ");
+    for (int wlc3 = 0; wlc3 < strlen(welcome3); wlc3++) {
+        printf(" %c", welcome3[wlc3]);
+        Sleep(100);
+    }
+    printf("\n\n\t\t\t\t ");
+}
+
+void clearScreen() {
+    system("cls");
+}
+
+void viewAllBooks(struct Book books[], int numBooks) {
+    clearScreen();
+    if (numBooks == 0) {
+        printf("The inventory is empty.\n");
+        return;
+    }
+
+    printf("All Books:\n");
+    for (int i = 0; i < numBooks; i++) {
+        printf("ID: %d\n", books[i].id);
+        printf("Title: %s\n", books[i].title);
+        printf("Author: %s\n", books[i].author);
+        printf("Reserved: %d\n", books[i].reserved);
+        printf("\n");
+    }
+}
+
 void readBooks(struct Book books[], int *numBooks) {
+    clearScreen();
     FILE *fp = fopen("books.txt", "r");
     if (fp == NULL) {
         printf("Error opening books file.\n");
@@ -29,7 +71,7 @@ void readBooks(struct Book books[], int *numBooks) {
     }
 
     int i = 0;
-    while (fscanf(fp, "%d,%[^,],%[^,],%d,%d", &books[i].id, books[i].title, books[i].author, &books[i].available, &books[i].reserved) != EOF) {
+    while (fscanf(fp, "%d,%[^,],%[^,],%d", &books[i].id, books[i].title, books[i].author, &books[i].reserved) != EOF) {
         i++;
     }
     *numBooks = i;
@@ -38,6 +80,7 @@ void readBooks(struct Book books[], int *numBooks) {
 }
 
 void writeBooks(struct Book books[], int numBooks) {
+    clearScreen();
     FILE *fp = fopen("books.txt", "w");
     if (fp == NULL) {
         printf("Error opening books file.\n");
@@ -45,13 +88,14 @@ void writeBooks(struct Book books[], int numBooks) {
     }
 
     for (int i = 0; i < numBooks; i++) {
-        fprintf(fp, "%d,%s,%s,%d,%d\n", books[i].id, books[i].title, books[i].author, books[i].available, books[i].reserved);
+        fprintf(fp, "%d,%s,%s,%d\n", books[i].id, books[i].title, books[i].author, books[i].reserved);
     }
 
     fclose(fp);
 }
 
 void readUsers(struct User users[], int *numUsers) {
+    clearScreen();
     FILE *fp = fopen("users.txt", "r");
     if (fp == NULL) {
         printf("Error opening users file.\n");
@@ -68,6 +112,7 @@ void readUsers(struct User users[], int *numUsers) {
 }
 
 void writeUsers(struct User users[], int numUsers) {
+    clearScreen();
     FILE *fp = fopen("users.txt", "w");
     if (fp == NULL) {
         printf("Error opening users file.\n");
@@ -82,6 +127,7 @@ void writeUsers(struct User users[], int numUsers) {
 }
 
 void registerUser(struct User users[], int *numUsers) {
+    clearScreen();
     struct User newUser;
     printf("Enter your ID: ");
     scanf("%d", &newUser.id);
@@ -89,8 +135,7 @@ void registerUser(struct User users[], int *numUsers) {
     scanf(" %[^\n]", newUser.name);
     printf("Enter your password: ");
     scanf(" %[^\n]", newUser.password);
-    printf("Enter your role (student/admin): ");
-    scanf(" %[^\n]", newUser.role);
+    strcpy(newUser.role, "student");
     newUser.borrowedBookId = -1;
     newUser.fine = 0;
 
@@ -101,6 +146,7 @@ void registerUser(struct User users[], int *numUsers) {
 }
 
 int loginUser(struct User users[], int numUsers, struct User *loggedInUser) {
+    clearScreen();
     char name[50], password[50];
     printf("Enter your name: ");
     scanf(" %[^\n]", name);
@@ -119,6 +165,7 @@ int loginUser(struct User users[], int numUsers, struct User *loggedInUser) {
 }
 
 void searchBooks(struct Book books[], int numBooks) {
+    clearScreen();
     char query[50];
     printf("Enter the title, author, or ID of the book to search: ");
     scanf(" %[^\n]", query);
@@ -129,7 +176,6 @@ void searchBooks(struct Book books[], int numBooks) {
             printf("ID: %d\n", books[i].id);
             printf("Title: %s\n", books[i].title);
             printf("Author: %s\n", books[i].author);
-            printf("Available: %d\n", books[i].available);
             printf("Reserved: %d\n", books[i].reserved);
             return;
         }
@@ -139,6 +185,7 @@ void searchBooks(struct Book books[], int numBooks) {
 }
 
 void borrowBook(struct Book books[], int numBooks, struct User *user) {
+    clearScreen();
     if (user->borrowedBookId != -1) {
         printf("You have already borrowed a book.\n");
         return;
@@ -150,16 +197,10 @@ void borrowBook(struct Book books[], int numBooks, struct User *user) {
 
     for (int i = 0; i < numBooks; i++) {
         if (books[i].id == bookId) {
-            if (books[i].available > 0) {
-                books[i].available--;
-                user->borrowedBookId = bookId;
-                printf("You have successfully borrowed the book: %s\n", books[i].title);
-                writeBooks(books, numBooks);
-                return;
-            } else {
-                printf("The book is not available.\n");
-                return;
-            }
+            user->borrowedBookId = bookId;
+            writeUsers(&user, 1);
+            printf("You have successfully borrowed the book: %s\n", books[i].title);
+            return;
         }
     }
 
@@ -167,6 +208,7 @@ void borrowBook(struct Book books[], int numBooks, struct User *user) {
 }
 
 void returnBook(struct Book books[], int numBooks, struct User *user) {
+    clearScreen();
     if (user->borrowedBookId == -1) {
         printf("You have not borrowed any books.\n");
         return;
@@ -174,10 +216,9 @@ void returnBook(struct Book books[], int numBooks, struct User *user) {
 
     for (int i = 0; i < numBooks; i++) {
         if (books[i].id == user->borrowedBookId) {
-            books[i].available++;
             user->borrowedBookId = -1;
+            writeUsers(&user, 1);
             printf("You have successfully returned the book: %s\n", books[i].title);
-            writeBooks(books, numBooks);
             return;
         }
     }
@@ -186,6 +227,7 @@ void returnBook(struct Book books[], int numBooks, struct User *user) {
 }
 
 void viewBorrowedBooks(struct Book books[], int numBooks, struct User user) {
+    clearScreen();
     if (user.borrowedBookId == -1) {
         printf("You have not borrowed any books.\n");
         return;
@@ -197,6 +239,7 @@ void viewBorrowedBooks(struct Book books[], int numBooks, struct User user) {
             printf("ID: %d\n", books[i].id);
             printf("Title: %s\n", books[i].title);
             printf("Author: %s\n", books[i].author);
+            printf("Reserved: %d\n", books[i].reserved);
             return;
         }
     }
@@ -205,21 +248,17 @@ void viewBorrowedBooks(struct Book books[], int numBooks, struct User user) {
 }
 
 void reserveBook(struct Book books[], int numBooks, struct User *user) {
+    clearScreen();
     int bookId;
     printf("Enter the ID of the book you want to reserve: ");
     scanf("%d", &bookId);
 
     for (int i = 0; i < numBooks; i++) {
         if (books[i].id == bookId) {
-            if (books[i].reserved == 0) {
-                books[i].reserved = user->id;
-                printf("You have successfully reserved the book: %s\n", books[i].title);
-                writeBooks(books, numBooks);
-                return;
-            } else {
-                printf("The book is already reserved.\n");
-                return;
-            }
+            books[i].reserved++;
+            writeBooks(books, numBooks);
+            printf("You have successfully reserved the book: %s\n", books[i].title);
+            return;
         }
     }
 
@@ -227,6 +266,7 @@ void reserveBook(struct Book books[], int numBooks, struct User *user) {
 }
 
 void addBook(struct Book books[], int *numBooks) {
+    clearScreen();
     struct Book newBook;
     printf("Enter the ID of the new book: ");
     scanf("%d", &newBook.id);
@@ -234,8 +274,6 @@ void addBook(struct Book books[], int *numBooks) {
     scanf(" %[^\n]", newBook.title);
     printf("Enter the author of the new book: ");
     scanf(" %[^\n]", newBook.author);
-    printf("Enter the number of available copies: ");
-    scanf("%d", &newBook.available);
     newBook.reserved = 0;
 
     books[*numBooks] = newBook;
@@ -245,6 +283,7 @@ void addBook(struct Book books[], int *numBooks) {
 }
 
 void removeBook(struct Book books[], int *numBooks) {
+    clearScreen();
     int bookId;
     printf("Enter the ID of the book to remove: ");
     scanf("%d", &bookId);
@@ -265,6 +304,7 @@ void removeBook(struct Book books[], int *numBooks) {
 }
 
 void updateBookDetails(struct Book books[], int numBooks) {
+    clearScreen();
     int bookId;
     printf("Enter the ID of the book to update: ");
     scanf("%d", &bookId);
@@ -275,8 +315,8 @@ void updateBookDetails(struct Book books[], int numBooks) {
             scanf(" %[^\n]", books[i].title);
             printf("Enter the new author of the book: ");
             scanf(" %[^\n]", books[i].author);
-            printf("Enter the new number of available copies: ");
-            scanf("%d", &books[i].available);
+            printf("Enter the new number of reserved copies: ");
+            scanf("%d", &books[i].reserved);
             writeBooks(books, numBooks);
             printf("Book details updated successfully.\n");
             return;
@@ -287,6 +327,7 @@ void updateBookDetails(struct Book books[], int numBooks) {
 }
 
 void manageUser(struct User users[], int *numUsers) {
+    clearScreen();
     int userId;
     printf("Enter the ID of the user to manage: ");
     scanf("%d", &userId);
@@ -297,6 +338,8 @@ void manageUser(struct User users[], int *numUsers) {
             scanf(" %[^\n]", users[i].name);
             printf("Enter the new password of the user: ");
             scanf(" %[^\n]", users[i].password);
+            printf("Enter the new role of the user: ");
+            scanf(" %[^\n]", users[i].role);
             writeUsers(users, *numUsers);
             printf("User details updated successfully.\n");
             return;
@@ -307,6 +350,7 @@ void manageUser(struct User users[], int *numUsers) {
 }
 
 void issueBook(struct Book books[], int numBooks, struct User *user) {
+    clearScreen();
     if (user->borrowedBookId != -1) {
         printf("You have already borrowed a book.\n");
         return;
@@ -318,16 +362,10 @@ void issueBook(struct Book books[], int numBooks, struct User *user) {
 
     for (int i = 0; i < numBooks; i++) {
         if (books[i].id == bookId) {
-            if (books[i].available > 0) {
-                books[i].available--;
-                user->borrowedBookId = bookId;
-                printf("You have successfully issued the book: %s\n", books[i].title);
-                writeBooks(books, numBooks);
-                return;
-            } else {
-                printf("The book is not available.\n");
-                return;
-            }
+            user->borrowedBookId = bookId;
+            writeUsers(&user, 1);
+            printf("You have successfully issued the book: %s\n", books[i].title);
+            return;
         }
     }
 
@@ -335,11 +373,13 @@ void issueBook(struct Book books[], int numBooks, struct User *user) {
 }
 
 void trackFines(struct User users[], int numUsers) {
+    clearScreen();
     for (int i = 0; i < numUsers; i++) {
         if (users[i].fine > 0) {
             printf("User ID: %d\n", users[i].id);
             printf("Name: %s\n", users[i].name);
             printf("Fine: %d\n", users[i].fine);
+            printf("\n");
         }
     }
 }
@@ -354,6 +394,9 @@ int main() {
 
     readBooks(books, &numBooks);
     readUsers(users, &numUsers);
+
+    clearScreen();
+    welcome();
 
     int choice;
     while (1) {
@@ -383,7 +426,8 @@ int main() {
                 printf("3. Return Book\n");
                 printf("4. View Borrowed Books\n");
                 printf("5. Reserve Book\n");
-                printf("6. Logout\n");
+                printf("6. View All Books\n");
+                printf("7. Logout\n");
                 printf("Enter your choice: ");
                 scanf("%d", &choice);
 
@@ -404,6 +448,9 @@ int main() {
                         reserveBook(books, numBooks, &loggedInUser);
                         break;
                     case 6:
+                        viewAllBooks(books, numBooks);
+                        break;
+                    case 7:
                         loggedIn = 0;
                         break;
                     default:
@@ -418,7 +465,8 @@ int main() {
                 printf("6. Manage User\n");
                 printf("7. Issue Book\n");
                 printf("8. Track Fines\n");
-                printf("9. Logout\n");
+                printf("9. View All Books\n");
+                printf("10. Logout\n");
                 printf("Enter your choice: ");
                 scanf("%d", &choice);
 
@@ -448,6 +496,9 @@ int main() {
                         trackFines(users, numUsers);
                         break;
                     case 9:
+                        viewAllBooks(books, numBooks);
+                        break;
+                    case 10:
                         loggedIn = 0;
                         break;
                     default:
